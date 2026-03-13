@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+            width: 1200px;
+            height: 630px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .card {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(2px 2px at 100px 50px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(2px 2px at 300px 100px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 500px 80px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(2px 2px at 700px 150px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 900px 60px, rgba(255,255,255,0.5), transparent),
+                radial-gradient(2px 2px at 1100px 120px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 200px 200px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(2px 2px at 400px 300px, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1px 1px at 600px 250px, rgba(255,255,255,0.3), transparent),
+                radial-gradient(2px 2px at 800px 350px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 1000px 280px, rgba(255,255,255,0.4), transparent);
+            pointer-events: none;
+        }
+        .candle-group {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+        }
+        .candle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .flame {
+            width: 30px;
+            height: 60px;
+            background: radial-gradient(ellipse at bottom, #ffd700 0%, #ff8c00 40%, #ff4500 70%, transparent 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: relative;
+            animation: flicker 1.5s ease-in-out infinite alternate;
+            box-shadow: 
+                0 0 20px #ffd700,
+                0 0 40px #ff8c00,
+                0 0 60px rgba(255, 140, 0, 0.5);
+        }
+        .candle:nth-child(2) .flame {
+            animation-delay: 0.3s;
+            height: 55px;
+        }
+        .candle:nth-child(3) .flame {
+            animation-delay: 0.6s;
+            height: 65px;
+        }
+        @keyframes flicker {
+            0%, 100% { transform: scaleY(1) scaleX(1); }
+            50% { transform: scaleY(1.1) scaleX(0.9); }
+        }
+        .wax {
+            width: 40px;
+            height: 120px;
+            background: linear-gradient(to right, #f5f5dc 0%, #fffef0 50%, #f5f5dc 100%);
+            border-radius: 4px 4px 6px 6px;
+            position: relative;
+        }
+        .count {
+            font-size: 72px;
+            font-weight: 700;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .label {
+            font-size: 28px;
+            font-weight: 500;
+            color: #e0d4f7;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+        .message {
+            font-size: 20px;
+            color: #a8a0c0;
+            max-width: 800px;
+            text-align: center;
+            line-height: 1.5;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+        .ribbon {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .ribbon-icon {
+            width: 40px;
+            height: 40px;
+        }
+        .ribbon-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+        .brand {
+            font-size: 20px;
+            font-weight: 600;
+            color: #F59E0B;
+        }
+        .footer {
+            position: absolute;
+            bottom: 30px;
+            font-size: 16px;
+            color: #8b80a8;
+        }
+        .footer span {
+            color: #F59E0B;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="stars"></div>
+        <div class="ribbon">
+            <div class="ribbon-icon">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 10 C 35 30, 20 40, 30 60 C 35 70, 45 75, 50 90 C 55 75, 65 70, 70 60 C 80 40, 65 30, 50 10" fill="#F59E0B"/>
+                </svg>
+            </div>
+            <span class="brand">EndoChat</span>
+        </div>
+        <div class="candle-group">
+            <div class="candle">
+                <div class="flame"></div>
+                <div class="wax"></div>
+            </div>
+            <div class="candle">
+                <div class="flame"></div>
+                <div class="wax"></div>
+            </div>
+            <div class="candle">
+                <div class="flame"></div>
+                <div class="wax"></div>
+            </div>
+        </div>
+        <div class="count">{{candle_count}}</div>
+        <div class="label">candles lit for endometriosis awareness</div>
+        <p class="message">"{{message}}"</p>
+        <div class="footer">Light your candle at <span>endochat.org</span></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+            width: 1200px;
+            height: 630px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: linear-gradient(135deg, #292524 0%, #1C1917 100%);
+            border-radius: 24px;
+            padding: 48px;
+            width: 1100px;
+            height: 530px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid #3F3F46;
+        }
+        .glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            position: relative;
+            z-index: 1;
+        }
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 24px;
+        }
+        .brand {
+            font-size: 24px;
+            font-weight: 600;
+            color: #F59E0B;
+        }
+        .stat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .stat-value {
+            font-size: 120px;
+            font-weight: 800;
+            color: #F59E0B;
+            line-height: 1;
+            margin-bottom: 16px;
+            text-shadow: 0 0 60px rgba(245, 158, 11, 0.5);
+        }
+        .stat-label {
+            font-size: 32px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 24px;
+        }
+        .description {
+            font-size: 22px;
+            color: #9CA3AF;
+            max-width: 800px;
+            line-height: 1.5;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+            padding-top: 24px;
+            border-top: 1px solid #3F3F46;
+            position: relative;
+            z-index: 1;
+        }
+        .source {
+            font-size: 14px;
+            color: #6B7280;
+            max-width: 60%;
+        }
+        .url {
+            font-size: 18px;
+            color: #F59E0B;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="glow"></div>
+        <div class="header">
+            <div class="logo">E</div>
+            <span class="brand">EndoChat</span>
+        </div>
+        <div class="stat-container">
+            <div class="stat-value">{{stat_value}}</div>
+            <div class="stat-label">{{stat_label}}</div>
+            <p class="description">{{description}}</p>
+        </div>
+        <div class="footer">
+            <p class="source">{{source}}</p>
+            <span class="url">endochat.org</span>
+        </div>
+    </div>
+</body>
+</html>

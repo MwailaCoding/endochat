@@ -1,0 +1,20 @@
+# Development Dependencies
+-r requirements.txt
+
+# Testing
+pytest==8.0.0
+pytest-asyncio==0.23.4
+pytest-cov==4.1.0
+httpx==0.26.0
+
+# Code Quality
+black==24.1.1
+isort==5.13.2
+flake8==7.0.0
+mypy==1.8.0
+
+# Type Stubs
+types-redis==4.6.0
+
+# Development Server
+watchfiles==0.21.0
