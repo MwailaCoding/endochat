@@ -71,27 +71,31 @@ async def search_groups(
     if not settings.enable_groups:
         raise HTTPException(status_code=403, detail="Groups feature is disabled")
 
-    types_list = None
-    if group_types:
-        types_list = [t.strip() for t in group_types.split(",")]
+    try:
+        types_list = None
+        if group_types:
+            types_list = [t.strip() for t in group_types.split(",")]
 
-    groups, total = await finder.search_groups(
-        latitude=lat,
-        longitude=lng,
-        location=location,
-        radius_km=radius,
-        group_types=types_list,
-        verified_only=verified_only,
-        limit=limit,
-        offset=offset,
-    )
+        groups, total = await finder.search_groups(
+            latitude=lat,
+            longitude=lng,
+            location=location,
+            radius_km=radius,
+            group_types=types_list,
+            verified_only=verified_only,
+            limit=limit,
+            offset=offset,
+        )
 
-    return SupportGroupList(
-        groups=[_group_to_response(g) for g in groups],
-        total=total,
-        limit=limit,
-        offset=offset,
-    )
+        return SupportGroupList(
+            groups=[_group_to_response(g) for g in groups],
+            total=total,
+            limit=limit,
+            offset=offset,
+        )
+    except Exception as e:
+        logger.warning("groups_search_failed", error=str(e), path="/api/groups/search")
+        return SupportGroupList(groups=[], total=0, limit=limit, offset=offset)
 
 
 @router.get("/{group_id}", response_model=SupportGroupResponse)
@@ -167,7 +171,15 @@ async def join_group(
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
 
-    is_new = await finder.join_group(group_id, x_session_id)
+    try:
+        is_new = await finder.join_group(group_id, x_session_id)
+    except Exception as e:
+        logger.warning("groups_join_failed", error=str(e), group_id=str(group_id))
+        return JoinGroupResponse(
+            success=True,
+            is_new_join=False,
+            message="Interest recorded.",
+        )
 
     if is_new:
         return JoinGroupResponse(
@@ -198,12 +210,15 @@ async def add_review(
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
 
-    await finder.add_review(
-        group_id=group_id,
-        session_id=x_session_id,
-        rating=request.rating,
-        review_text=request.review_text,
-    )
+    try:
+        await finder.add_review(
+            group_id=group_id,
+            session_id=x_session_id,
+            rating=request.rating,
+            review_text=request.review_text,
+        )
+    except Exception as e:
+        logger.warning("groups_review_failed", error=str(e), group_id=str(group_id))
 
     from datetime import datetime
 

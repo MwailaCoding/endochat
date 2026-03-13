@@ -12,6 +12,7 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
+import os
 import requests
 import json
 import uuid
@@ -20,8 +21,8 @@ from typing import Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
 
-# Configuration
-BASE_URL = "http://localhost:8000"
+# Configuration: argv > env > default. Examples: python test_all_apis.py http://localhost:8000  OR  $env:API_BASE_URL="http://localhost:8000"
+BASE_URL = (sys.argv[1] if len(sys.argv) > 1 else os.environ.get("API_BASE_URL", "https://endochat.onrender.com")).rstrip("/")
 SESSION_ID = str(uuid.uuid4())
 
 class TestStatus(Enum):
@@ -500,7 +501,7 @@ class APITester:
 
 def main():
     print("\n🚀 Starting EndoChat API Tests...")
-    print("⚠️  Make sure the backend server is running on http://localhost:8000\n")
+    print(f"⚠️  Base URL: {BASE_URL}\n")
     
     tester = APITester(BASE_URL, SESSION_ID)
     
@@ -509,9 +510,9 @@ def main():
         response = requests.get(f"{BASE_URL}/api/health/live", timeout=5)
         print(f"✅ Server is accessible (status: {response.status_code})\n")
     except requests.exceptions.ConnectionError:
-        print("❌ ERROR: Cannot connect to server at http://localhost:8000")
-        print("   Please start the backend server first:")
-        print("   cd backend && uvicorn app.main:app --reload")
+        print(f"❌ ERROR: Cannot connect to server at {BASE_URL}")
+        print("   Please start the backend server or set API_BASE_URL / pass URL as first argument.")
+        print("   Example: python test_all_apis.py http://localhost:8000")
         print("\n")
         return
     except Exception as e:

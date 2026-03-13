@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
+import asyncpg
+
 from app.services.utils.logging import get_logger
 from app.core.exceptions import EndoChatException
 
@@ -17,8 +19,9 @@ logger = get_logger(__name__)
 class SupportGroupError(EndoChatException):
     """Support group service error."""
 
-    def __init__(self, message: str, detail: Optional[str] = None):
-        super().__init__(message=message, detail=detail, error_code="SUPPORT_GROUP_ERROR")
+    def __init__(self, message: str, detail: Optional[str] = None, status_code: int = 400):
+        details = {"detail": detail} if detail else {}
+        super().__init__(message=message, status_code=status_code, details=details)
 
 
 @dataclass
@@ -76,6 +79,9 @@ class SupportGroupFinder:
             return None
         except (GeocoderTimedOut, GeocoderServiceError) as e:
             logger.warning("Geocoding failed", location=location, error=str(e))
+            return None
+        except Exception as e:
+            logger.warning("Geocoding error", location=location, error=str(e))
             return None
 
     async def search_groups(
@@ -152,8 +158,13 @@ class SupportGroupFinder:
         """
         params.extend([limit, offset])
 
-        async with self.db_pool.pool.acquire() as conn:
-            rows = await conn.fetch(query, *params)
+        try:
+            async with self.db_pool.pool.acquire() as conn:
+                rows = await conn.fetch(query, *params)
+        except Exception as e:
+            # e.g. haversine_distance() not present on DB (e.g. Render)
+            logger.warning("Geo search failed, falling back to all groups", error=str(e))
+            return await self._get_all_groups(group_types, verified_only, limit, offset)
 
         if not rows:
             return [], 0
@@ -349,11 +360,13 @@ class SupportGroupFinder:
         query = """
             INSERT INTO group_joins (group_id, session_id)
             VALUES ($1, $2)
-            ON CONFLICT (group_id, session_id) DO NOTHING
             RETURNING id
         """
-        async with self.db_pool.pool.acquire() as conn:
-            result = await conn.fetchrow(query, group_id, session_id)
+        try:
+            async with self.db_pool.pool.acquire() as conn:
+                result = await conn.fetchrow(query, group_id, session_id)
+        except asyncpg.UniqueViolationError:
+            return False
 
         if result:
             await self._increment_member_count(group_id)
@@ -378,16 +391,28 @@ class SupportGroupFinder:
                 detail="Rating must be between 1 and 5",
             )
 
-        query = """
-            INSERT INTO group_reviews (group_id, session_id, rating, review_text)
-            VALUES ($1, $2, $3, $4)
-            ON CONFLICT (group_id, session_id)
-            DO UPDATE SET rating = $3, review_text = $4
-            RETURNING id
-        """
         async with self.db_pool.pool.acquire() as conn:
-            result = await conn.fetchrow(query, group_id, session_id, rating, review_text)
-        return result is not None
+            # Try update first (existing review)
+            update = """
+                UPDATE group_reviews
+                SET rating = $3, review_text = $4
+                WHERE group_id = $1 AND session_id = $2
+            """
+            result = await conn.execute(update, group_id, session_id, rating, review_text)
+            if result == "UPDATE 1":
+                return True
+            # Insert new review
+            insert = """
+                INSERT INTO group_reviews (group_id, session_id, rating, review_text)
+                VALUES ($1, $2, $3, $4)
+            """
+            try:
+                await conn.execute(insert, group_id, session_id, rating, review_text)
+                return True
+            except asyncpg.UniqueViolationError:
+                # Raced with another request; treat as success
+                return True
+        return False
 
     async def get_group_reviews(
         self,
