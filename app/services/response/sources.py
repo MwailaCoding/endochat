@@ -12,8 +12,8 @@ logger = get_logger(__name__)
 class SourceFormatter:
     """Format and deduplicate sources from multiple APIs."""
 
-    # Priority order for sources
-    SOURCE_PRIORITY = ["who", "pubmed", "openfda", "drugbank", "medlineplus"]
+    # Priority order for sources (medical first, then web)
+    SOURCE_PRIORITY = ["who", "pubmed", "openfda", "drugbank", "medlineplus", "web"]
 
     def format_sources(
         self,
@@ -49,7 +49,7 @@ class SourceFormatter:
             source_type = result.get("source", default_source).lower()
 
             # Map to valid source types
-            valid_sources = ["who", "pubmed", "openfda", "drugbank", "medlineplus"]
+            valid_sources = ["who", "pubmed", "openfda", "drugbank", "medlineplus", "web"]
             if source_type not in valid_sources:
                 source_type = "who"  # Default fallback
 
@@ -113,6 +113,7 @@ class SourceFormatter:
             "pubmed": 0.25,
             "openfda": 0.15,
             "drugbank": 0.15,
+            "web": 0.1,
         }
         confidence += source_boosts.get(source_type, 0)
 

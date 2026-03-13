@@ -33,7 +33,9 @@ class Settings(BaseSettings):
 
     # API Keys
     openai_api_key: Optional[str] = None
-    openai_model: str = "gpt-3.5-turbo"
+    # Use highest-quality model for best endometriosis answers (gpt-4o). Use gpt-4o-mini for lower cost.
+    openai_model: str = "gpt-4o"
+    openai_max_tokens: int = 1024
     openai_enabled: bool = True
 
     pubmed_api_key: Optional[str] = None
@@ -42,6 +44,12 @@ class Settings(BaseSettings):
     openfda_api_key: Optional[str] = None
 
     drugbank_api_key: Optional[str] = None
+
+    # Web search (Tavily)
+    web_search_enabled: bool = True
+    web_search_api_key: Optional[str] = None
+    web_search_provider: str = "tavily"
+    web_search_max_results: int = 5
 
     # API Settings
     api_timeout: int = 10
@@ -98,6 +106,15 @@ class Settings(BaseSettings):
     def is_hcti_available(self) -> bool:
         """Check if HTML-to-Image API is configured."""
         return bool(self.hcti_api_user_id and self.hcti_api_key)
+
+    @property
+    def is_web_search_available(self) -> bool:
+        """Check if web search (Tavily) is configured and enabled."""
+        return (
+            self.web_search_enabled
+            and bool(self.web_search_api_key)
+            and self.web_search_provider == "tavily"
+        )
 
 
 @lru_cache

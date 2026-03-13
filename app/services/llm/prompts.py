@@ -6,51 +6,52 @@ from typing import List, Dict, Any
 class PromptTemplates:
     """Centralized prompt management for EndoChat."""
 
-    SYSTEM_PROMPT = """You are EndoChat, a compassionate and knowledgeable AI assistant specializing in endometriosis information. Your role is to provide accurate, evidence-based information while being supportive and understanding.
+    SYSTEM_PROMPT = """You are EndoChat, a compassionate and highly knowledgeable AI assistant dedicated exclusively to endometriosis. You receive context from multiple source types: trusted medical APIs (e.g. WHO, PubMed, OpenFDA, DrugBank) and, when available, web search results. Your role is to synthesize all provided sources into one coherent, premium-quality answer—never give a basic or one-line reply.
 
-Key guidelines:
-- Use ONLY the provided context to answer questions
-- Always cite sources using [1], [2] format when referencing information
-- Be empathetic - endometriosis significantly impacts quality of life
-- If information is not in the context, clearly state that
-- Never provide medical diagnoses or treatment recommendations
-- Encourage users to consult healthcare providers for personal medical decisions
-- Use clear, accessible language while being medically accurate"""
+SCOPE:
+- Answer ONLY questions clearly about endometriosis or directly related (e.g. "pain with periods", "fertility and endo", "laparoscopy for endo"). If off-topic, respond briefly: "I'm here to help with endometriosis-related questions only. Is there something about endometriosis you'd like to know?"
+- Stay strictly within the provided context; do not add facts from outside the sources.
+
+PREMIUM ANSWER STYLE:
+- Synthesize across all source types into a single, well-structured answer. Prioritize authoritative medical sources (WHO, PubMed, etc.) but incorporate relevant web content when it adds value.
+- Use clear structure where appropriate: a short intro, key points or sections, and clear citations [1], [2], [3] matching the context numbers. End with a brief line encouraging the user to consult a healthcare provider for personal decisions.
+- Be thorough, specific, and accurate—not generic. Use clear, accessible language while remaining medically accurate.
+- Be empathetic and supportive; endometriosis significantly impacts quality of life.
+
+SAFETY:
+- Never give personal medical diagnoses or treatment recommendations. Cite only the provided context. If the context is insufficient, say so and suggest rephrasing or a related question."""
 
     def detailed_answer(self, question: str, context: str) -> str:
-        """Generate a detailed answer prompt."""
-        return f"""Based on the following trusted medical sources, provide a comprehensive answer to the user's question about endometriosis.
+        """Generate a detailed, premium answer prompt (medical + web sources)."""
+        return f"""Using the following context from trusted medical sources and web search (when present), provide a comprehensive, premium-quality answer to the user's question about endometriosis. Do not give a basic or generic answer—synthesize the context into a specific, accurate, and helpful response.
 
-CONTEXT FROM TRUSTED SOURCES:
+CONTEXT (medical APIs and/or web; each [N] is one source):
 {context}
 
 USER QUESTION: {question}
 
 INSTRUCTIONS:
-1. Answer based ONLY on the provided context - do not add information from other sources
-2. Cite sources using [1], [2], [3] format matching the context numbers
-3. Be thorough but clear and well-organized
-4. If the context doesn't fully answer the question, acknowledge what information is available and what is missing
-5. Be supportive and empathetic in tone
-6. Include relevant details that help the user understand the topic
+1. Answer based ONLY on the provided context. Combine information from medical and web sources into one coherent answer. Prioritize authoritative sources (WHO, PubMed, etc.) but use web content when relevant.
+2. Cite sources with [1], [2], [3] matching the context numbers.
+3. Be thorough and well-organized: use a short intro, key points or sections, and a closing line encouraging consultation with a healthcare provider.
+4. If the context doesn't fully answer the question, state what is available and what is missing; do not speculate.
+5. Be supportive and empathetic. Do not diagnose or recommend treatments.
 
 Provide your answer:"""
 
     def simple_answer(self, question: str, context: str) -> str:
-        """Generate a simplified answer prompt."""
-        return f"""Using the information below, provide a simple, easy-to-understand answer to this question about endometriosis. Write as if explaining to someone with no medical background.
+        """Generate a simplified but premium answer prompt (medical + web sources)."""
+        return f"""Using the context below (from medical sources and/or web search), provide a simple, easy-to-understand answer to this question about endometriosis. Do not give a basic or generic answer—use the provided context to give a specific, accurate, and helpful response in plain language.
 
-INFORMATION FROM TRUSTED SOURCES:
+CONTEXT:
 {context}
 
 QUESTION: {question}
 
 INSTRUCTIONS:
-1. Use simple, everyday language - avoid medical jargon
-2. Keep sentences short and clear
-3. Answer in 2-3 paragraphs maximum
-4. Still cite sources with [1], [2] where relevant
-5. Focus on the most important points
+1. Synthesize the context (medical + web when present) into 2-3 clear paragraphs. Use simple, everyday language—avoid jargon.
+2. Cite sources with [1], [2] where relevant.
+3. Focus on the most important points for someone learning about or living with endometriosis. End with a brief line about consulting a healthcare provider.
 
 Simple answer:"""
 
@@ -106,33 +107,28 @@ INSTRUCTIONS:
 Key points:"""
 
     def format_context(self, sources: List[Dict[str, Any]]) -> str:
-        """Format sources into context string for prompts."""
+        """Format sources into context string for prompts (medical APIs + web)."""
         context_parts = []
+        source_labels = {"who": "WHO", "pubmed": "PubMed", "openfda": "OpenFDA", "drugbank": "DrugBank", "medlineplus": "MedlinePlus", "web": "Web"}
 
         for i, source in enumerate(sources, 1):
             source_type = source.get("source", "source")
-            org = source.get("organization", source_type.upper())
+            org = source.get("organization", source_labels.get(source_type, source_type.upper()))
             title = source.get("title", "")
-            content = source.get("content", "")[:600]
+            content = (source.get("content") or source.get("snippet") or "")[:600]
 
             context_parts.append(
-                f"[{i}] {org} - {title}\n{content}"
+                f"[{i}] ({org}) {title}\n{content}"
             )
 
         return "\n\n".join(context_parts)
 
     def classify_question(self, question: str) -> str:
         """Classify question into category."""
-        return f"""Classify this endometriosis-related question into ONE of these categories:
-- symptoms
-- treatment
-- diagnosis
-- causes
-- fertility
-- lifestyle
-- support
-- general
+        return f"""Classify this question. If it is clearly about endometriosis (or directly related, e.g. period pain, fertility and endo), use ONE category below. If it is NOT about endometriosis, respond with: off-topic
+
+Categories: symptoms, treatment, diagnosis, causes, fertility, lifestyle, support, general
 
 QUESTION: {question}
 
-Respond with only the category name, nothing else:"""
+Respond with only the category name or "off-topic", nothing else:"""

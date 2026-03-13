@@ -274,8 +274,14 @@ class ChatOrchestrator:
         self,
         sources: List[SourceCitation],
     ) -> List[Dict[str, Any]]:
-        """Convert SourceCitation list to dicts for processing."""
-        return [s.model_dump() for s in sources]
+        """Convert SourceCitation list to dicts for LLM/fallback (include content from snippet)."""
+        out = []
+        for s in sources:
+            d = s.model_dump()
+            if not d.get("content") and d.get("snippet"):
+                d["content"] = d["snippet"]
+            out.append(d)
+        return out
 
     async def process_simple(
         self,

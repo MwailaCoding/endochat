@@ -17,8 +17,8 @@ class LLMClient:
     def __init__(
         self,
         api_key: str,
-        model: str = "gpt-3.5-turbo",
-        max_tokens: int = 500,
+        model: str = "gpt-4o",
+        max_tokens: int = 1024,
         temperature: float = 0.3,
     ):
         self.client = AsyncOpenAI(api_key=api_key)
@@ -133,7 +133,7 @@ class LLMClient:
 
             valid_categories = [
                 "symptoms", "treatment", "diagnosis", "causes",
-                "fertility", "lifestyle", "support", "general"
+                "fertility", "lifestyle", "support", "general", "off-topic"
             ]
 
             return category if category in valid_categories else "general"

@@ -47,6 +47,7 @@ async def init_services(settings: Settings) -> None:
         _llm_client = LLMClient(
             api_key=settings.openai_api_key,
             model=settings.openai_model,
+            max_tokens=settings.openai_max_tokens,
         )
 
     # Main orchestrator

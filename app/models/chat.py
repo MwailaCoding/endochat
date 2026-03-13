@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 class SourceCitation(BaseModel):
     """Source citation for an answer."""
 
-    source: Literal["who", "pubmed", "openfda", "drugbank", "medlineplus"]
+    source: Literal["who", "pubmed", "openfda", "drugbank", "medlineplus", "web"]
     title: str
     url: Optional[str] = None
     snippet: Optional[str] = None
