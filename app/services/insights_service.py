@@ -98,11 +98,11 @@ class InsightsService:
             ) or 0
 
             avg_confidence = await conn.fetchval(
-                "SELECT AVG(confidence_score) FROM conversations WHERE confidence_score IS NOT NULL"
+                "SELECT AVG(confidence) FROM conversations WHERE confidence IS NOT NULL"
             ) or 0.0
 
             top_categories_rows = await conn.fetch("""
-                SELECT category, COUNT(*) as count
+                SELECT category, SUM(ask_count) as count
                 FROM popular_questions
                 WHERE category IS NOT NULL
                 GROUP BY category
@@ -343,8 +343,8 @@ class InsightsService:
         query = """
             SELECT 
                 COALESCE(category, 'uncategorized') as category,
-                COUNT(*) as count,
-                AVG(confidence_score) as avg_confidence
+                SUM(ask_count) as count,
+                0.0 as avg_confidence
             FROM popular_questions
             GROUP BY category
             ORDER BY count DESC
