@@ -37,10 +37,6 @@ class WHOAPIClient(BaseAPIClient):
         indicators = await self._search_indicators(query)
         results.extend(indicators)
 
-        # Also fetch relevant fact sheet content via dimension data
-        dimension_data = await self._search_dimensions(query)
-        results.extend(dimension_data)
-
         return results
 
     async def _search_indicators(self, query: str) -> List[Dict[str, Any]]:

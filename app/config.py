@@ -52,8 +52,8 @@ class Settings(BaseSettings):
     web_search_max_results: int = 5
 
     # API Settings
-    api_timeout: int = 10
-    api_max_retries: int = 3
+    api_timeout: int = 5
+    api_max_retries: int = 1
 
     # Rate Limiting
     rate_limit_requests: int = 100
