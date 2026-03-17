@@ -1,15 +1,29 @@
 """Run database migrations."""
 
 import asyncio
-import asyncpg
+import os
 from pathlib import Path
+
+import asyncpg
+from dotenv import load_dotenv
 
 
 async def run_migration():
     """Execute all SQL migrations in scripts/migrations (sorted by filename)."""
 
-    # Database connection (keep existing default; can be refactored later to env/settings)
-    db_url = "postgresql://postgres:2030@localhost:5432/endochat"
+    # Load .env so DATABASE_URL is available
+    project_root = Path(__file__).resolve().parents[1]
+    env_path = project_root / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+
+    # Prefer DATABASE_URL (Render / external DB); fallback to local default
+    db_url = os.getenv("DATABASE_URL", "postgresql://postgres:2030@localhost:5432/endochat")
+
+    # Ensure SSL when connecting to Render external Postgres
+    if "render.com" in db_url and "sslmode" not in db_url:
+        sep = "&" if "?" in db_url else "?"
+        db_url = f"{db_url}{sep}sslmode=require"
 
     migrations_dir = Path(__file__).parent / "migrations"
     if not migrations_dir.exists():
@@ -21,7 +35,7 @@ async def run_migration():
         print(f"No migration files found in: {migrations_dir}")
         return False
 
-    print("Connecting to database...")
+    print(f"Connecting to database: {db_url}")
 
     try:
         conn = await asyncpg.connect(db_url)

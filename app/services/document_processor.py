@@ -499,17 +499,14 @@ class DocumentProcessor:
             args.append(processed)
             arg_i += 1
 
-        # Merge metadata keys individually via jsonb_set chain
-        metadata_expr = "COALESCE(metadata, '{}'::jsonb)"
+        # Merge metadata keys in a single jsonb assignment to avoid
+        # 'multiple assignments to same column "metadata"' errors.
         if metadata_updates:
-            for k, v in metadata_updates.items():
-                sets.append(
-                    f"metadata = jsonb_set({metadata_expr}, '{{{k}}}', to_jsonb(${arg_i}::text), TRUE)"
-                )
-                # Store as text to keep simple/portable (can be enhanced later)
-                args.append(str(v))
-                metadata_expr = "metadata"  # subsequent sets apply to updated metadata
-                arg_i += 1
+            import json
+
+            sets.append(f"metadata = COALESCE(metadata, '{{}}'::jsonb) || ${arg_i}::jsonb")
+            args.append(json.dumps(metadata_updates))
+            arg_i += 1
 
         sets.append("updated_at = NOW()")
 
