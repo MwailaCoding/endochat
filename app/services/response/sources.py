@@ -13,7 +13,7 @@ class SourceFormatter:
     """Format and deduplicate sources from multiple APIs."""
 
     # Priority order for sources (medical first, then web)
-    SOURCE_PRIORITY = ["who", "pubmed", "openfda", "drugbank", "medlineplus", "web"]
+    SOURCE_PRIORITY = ["who", "pubmed", "document", "openfda", "drugbank", "medlineplus", "web"]
 
     def format_sources(
         self,
@@ -49,7 +49,7 @@ class SourceFormatter:
             source_type = result.get("source", default_source).lower()
 
             # Map to valid source types
-            valid_sources = ["who", "pubmed", "openfda", "drugbank", "medlineplus", "web"]
+            valid_sources = ["who", "pubmed", "openfda", "drugbank", "medlineplus", "web", "document"]
             if source_type not in valid_sources:
                 source_type = "who"  # Default fallback
 
@@ -61,6 +61,7 @@ class SourceFormatter:
             content = result.get("content", "")
             snippet = self._create_snippet(content)
 
+            doc = result.get("document") or {}
             return SourceCitation(
                 source=source_type,
                 title=title[:200],  # Limit title length
@@ -68,6 +69,12 @@ class SourceFormatter:
                 snippet=snippet,
                 publication_date=result.get("publication_date"),
                 confidence=self._calculate_source_confidence(result),
+                document_id=doc.get("document_id") if isinstance(doc, dict) else None,
+                document_filename=doc.get("filename") if isinstance(doc, dict) else None,
+                source_type=doc.get("source_type") if isinstance(doc, dict) else None,
+                source_organization=doc.get("source_organization") if isinstance(doc, dict) else None,
+                page_number=result.get("page_number"),
+                section_title=result.get("section_title"),
             )
 
         except Exception as e:
@@ -113,6 +120,7 @@ class SourceFormatter:
             "pubmed": 0.25,
             "openfda": 0.15,
             "drugbank": 0.15,
+            "document": 0.25,
             "web": 0.1,
         }
         confidence += source_boosts.get(source_type, 0)

@@ -7,12 +7,20 @@ from pydantic import BaseModel, Field
 class SourceCitation(BaseModel):
     """Source citation for an answer."""
 
-    source: Literal["who", "pubmed", "openfda", "drugbank", "medlineplus", "web"]
+    source: Literal["who", "pubmed", "openfda", "drugbank", "medlineplus", "web", "document"]
     title: str
     url: Optional[str] = None
     snippet: Optional[str] = None
     publication_date: Optional[str] = None
     confidence: Optional[float] = Field(None, ge=0, le=1)
+
+    # Document-only citation fields (optional)
+    document_id: Optional[str] = None
+    document_filename: Optional[str] = None
+    source_type: Optional[str] = None  # medical_guideline, patient_resource, research, official
+    source_organization: Optional[str] = None
+    page_number: Optional[int] = None
+    section_title: Optional[str] = None
 
 
 class ConfidenceModel(BaseModel):

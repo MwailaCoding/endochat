@@ -16,6 +16,7 @@ from app.services.database.repositories.popular import PopularRepository
 from app.services.response.confidence import ConfidenceCalculator
 from app.services.response.sources import SourceFormatter
 from app.services.response.suggestions import SuggestionGenerator
+from app.services.search_service import HybridSearchService
 from app.services.utils.text import generate_cache_hash
 from app.services.utils.logging import get_logger
 
@@ -36,6 +37,11 @@ class ChatOrchestrator:
         self.api_factory = api_factory
         self.llm = llm_client
         self.db_pool = db_pool
+        self.search = HybridSearchService(
+            api_factory=self.api_factory,
+            db_pool=self.db_pool,
+            openai_client=(self.llm.client if self.llm else None),
+        )
 
         # Response processing components
         self.fallback = FallbackAnswerGenerator()
@@ -87,7 +93,7 @@ class ChatOrchestrator:
             return self._create_cached_response(cached, start_time)
 
         # 2. Search all APIs in parallel
-        api_results = await self._search_apis(question)
+        api_results = await self.search.search_all(question)
 
         # 3. Format sources
         sources = self.source_formatter.format_sources(api_results)

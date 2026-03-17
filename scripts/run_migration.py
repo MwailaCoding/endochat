@@ -6,62 +6,34 @@ from pathlib import Path
 
 
 async def run_migration():
-    """Execute the enhanced features migration."""
-    
-    # Database connection
+    """Execute all SQL migrations in scripts/migrations (sorted by filename)."""
+
+    # Database connection (keep existing default; can be refactored later to env/settings)
     db_url = "postgresql://postgres:2030@localhost:5432/endochat"
-    
-    # Read migration file
-    migration_file = Path(__file__).parent / "migrations" / "002_enhanced_features.sql"
-    
-    if not migration_file.exists():
-        print(f"Migration file not found: {migration_file}")
+
+    migrations_dir = Path(__file__).parent / "migrations"
+    if not migrations_dir.exists():
+        print(f"Migrations folder not found: {migrations_dir}")
         return False
-    
-    sql = migration_file.read_text(encoding="utf-8")
-    
-    print(f"Connecting to database...")
-    
+
+    migration_files = sorted(migrations_dir.glob("*.sql"))
+    if not migration_files:
+        print(f"No migration files found in: {migrations_dir}")
+        return False
+
+    print("Connecting to database...")
+
     try:
         conn = await asyncpg.connect(db_url)
         print("Connected successfully!")
-        
-        print("Running migration: 002_enhanced_features.sql")
-        
-        # Execute the migration
-        await conn.execute(sql)
-        
-        print("Migration completed successfully!")
-        
-        # Verify tables were created
-        tables = await conn.fetch("""
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public' 
-            AND table_name IN (
-                'shared_cards', 'support_groups', 'group_reviews', 'group_joins',
-                'stories', 'story_supports', 'story_messages',
-                'candles', 'candle_messages'
-            )
-            ORDER BY table_name
-        """)
-        
-        print(f"\nCreated tables:")
-        for table in tables:
-            print(f"  - {table['table_name']}")
-        
-        # Verify functions were created
-        functions = await conn.fetch("""
-            SELECT routine_name 
-            FROM information_schema.routines 
-            WHERE routine_schema = 'public'
-            AND routine_name IN ('haversine_distance', 'update_updated_at_column')
-        """)
-        
-        print(f"\nCreated functions:")
-        for func in functions:
-            print(f"  - {func['routine_name']}")
-        
+
+        for migration_file in migration_files:
+            print(f"Running migration: {migration_file.name}")
+            sql = migration_file.read_text(encoding="utf-8")
+            await conn.execute(sql)
+
+        print("All migrations completed successfully!")
+
         await conn.close()
         return True
         

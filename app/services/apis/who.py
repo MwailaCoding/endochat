@@ -93,7 +93,7 @@ class WHOAPIClient(BaseAPIClient):
                 self._standardize_result(
                     title=indicator_name,
                     content=item.get("IndicatorDefinition", indicator_name),
-                    url=f"https://www.who.int/data/gho/data/indicators/indicator-details/GHO/{indicator_code}",
+                    url=self._build_indicator_url(indicator_code, indicator_name),
                     publication_date=item.get("DateModified"),
                     indicator_code=indicator_code,
                     organization="World Health Organization",
@@ -127,6 +127,13 @@ class WHOAPIClient(BaseAPIClient):
                 )
 
         return results[:5]
+
+    def _build_indicator_url(self, indicator_code: str, indicator_name: str) -> str:
+        """Build a stable URL for a WHO indicator."""
+        if indicator_code:
+            return f"{self.base_url}/{indicator_code}"
+
+        return "https://www.who.int/data/gho"
 
     def _get_relevant_keywords(self, query: str) -> List[str]:
         """Extract relevant keywords from query."""

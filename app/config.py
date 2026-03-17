@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o"
     openai_max_tokens: int = 1024
     openai_enabled: bool = True
+    openai_embedding_model: str = "text-embedding-ada-002"
+
+    # Documents / ingestion
+    documents_path: str = "./data/documents"
 
     pubmed_api_key: Optional[str] = None
     pubmed_email: str = "developer@endochat.org"
