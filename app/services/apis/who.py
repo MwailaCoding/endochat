@@ -140,12 +140,18 @@ class WHOAPIClient(BaseAPIClient):
         query_words = query.lower().split()
         keywords = []
 
+        # Keywords to ignore as they are too broad for WHO GHO indicators
+        stop_words = {"health", "what", "is", "about", "information", "data"}
+
         for word in query_words:
-            if len(word) > 3:
+            if len(word) > 3 and word not in stop_words:
                 keywords.append(word)
 
-        # Always include endometriosis-related terms
-        keywords.extend(["reproductive", "women", "health"])
+        # If we have specific keywords like endometriosis, don't add generic ones
+        # which would only dilute the results in the GHO API.
+        if not keywords:
+            keywords.extend(["reproductive", "women"])
+        
         return list(set(keywords))[:5]
 
     async def get_fact_sheet(self, topic: str = "endometriosis") -> Dict[str, Any]:

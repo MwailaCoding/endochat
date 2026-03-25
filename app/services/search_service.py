@@ -154,9 +154,9 @@ class HybridSearchService:
             # Prefer authoritative sources. Documents should be high priority.
             src = (r.get("source") or "").lower()
             priority = {
-                "who": 0,
+                "document": 0,
                 "pubmed": 1,
-                "document": 2,
+                "who": 2,
                 "openfda": 3,
                 "drugbank": 4,
                 "medlineplus": 5,
